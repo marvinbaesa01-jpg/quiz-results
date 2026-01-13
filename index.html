@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Quiz Results</title>
+</head>
+<body>
+
+<h1>Your Brain Health Results</h1>
+
+<img id="chart" alt="Your Results Chart">
+
+<script>
+  // Read scores from Jotform redirect
+  const params = new URLSearchParams(window.location.search);
+
+  const att = Number(params.get('att'));
+  const know = Number(params.get('know'));
+  const cond = Number(params.get('cond'));
+
+  // Convert 1–4 scale to percentage
+  const attitudePct = (att / 4) * 100;
+  const knowledgePct = (know / 4) * 100;
+  const conditionPct = (cond / 4) * 100;
+
+  // Build QuickChart config
+  const chartConfig = {
+    type: 'radar',
+    data: {
+      labels: ['Attitude', 'Knowledge', 'Condition'],
+      datasets: [{
+        label: 'Brain Health Profile',
+        data: [attitudePct, knowledgePct, conditionPct],
+        fill: true
+      }]
+    },
+    options: {
+      scales: {
+        r: { min: 0, max: 100 }
+      }
+    }
+  };
+
+  // Generate QuickChart image
+  const chartUrl =
+    'https://quickchart.io/chart?c=' +
+    encodeURIComponent(JSON.stringify(chartConfig));
+
+  document.getElementById('chart').src = chartUrl;
+</script>
+
+</body>
+</html>
