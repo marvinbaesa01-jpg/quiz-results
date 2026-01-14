@@ -193,6 +193,7 @@ const chartConfig = {
     datasets: [{
       label: 'Brain Health Profile',
       data: normalized,
+      fill: true,
       backgroundColor: 'rgba(54,162,235,0.25)',
       borderColor: 'rgba(54,162,235,1)',
       pointBackgroundColor: 'rgba(54,162,235,1)',
@@ -200,17 +201,28 @@ const chartConfig = {
     }]
   },
   options: {
+    plugins: {
+      legend: {
+        display: true
+      }
+    },
     scales: {
       r: {
+        beginAtZero: true,
         min: 0,
         max: 100,
         ticks: {
-          stepSize: 20
+          stepSize: 20,
+          backdropColor: 'transparent'
+        },
+        grid: {
+          circular: true
         }
       }
     }
   }
 };
+
 
 const chartURL =
   "https://quickchart.io/chart?c=" +
