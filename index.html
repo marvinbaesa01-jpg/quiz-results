@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Brain Health Assessment Results</title>
+  <title>Your Brain Health Results</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -15,14 +15,14 @@
     }
 
     h1 {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     .section {
-      margin-top: 30px;
-      padding: 20px;
-      border-radius: 8px;
+      margin-top: 24px;
+      padding: 18px;
       background: #f6f8fa;
+      border-radius: 8px;
     }
 
     .persona-title {
@@ -40,12 +40,19 @@
       margin: 30px auto;
       max-width: 100%;
     }
+
+    .debug {
+      background: #fff3cd;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
 
-<h1>Your Brain Health Profile</h1>
-<p>This assessment reflects your current mindset, knowledge, and cognitive experience.</p>
+<h1>Your Brain Health Results</h1>
 
 <img id="chart" alt="Brain Health Radar Chart">
 
@@ -65,122 +72,152 @@
 </div>
 
 <script>
-  // -----------------------------
-  // 1. READ SCORES FROM URL
-  // -----------------------------
-  const params = new URLSearchParams(window.location.search);
+/* ======================================================
+   1. READ & SANITIZE URL PARAMETERS
+====================================================== */
 
-  const attitude = Number(params.get('att'));
-  const knowledge = Number(params.get('know'));
-  const condition = Number(params.get('cond'));
+const params = new URLSearchParams(window.location.search);
 
-  // -----------------------------
-  // 2. PERSONA LOGIC FUNCTIONS
-  // -----------------------------
-  function getAttitudePersona(score) {
-    if (score >= 10) return [
-      "Attitude: Brain Health Champion",
-      "You already value and prioritize your brain health—now it’s about refining and sustaining your approach."
-    ];
-    if (score >= 7) return [
-      "Attitude: Brain Health Aware",
-      "You recognize the importance of brain health. With a few intentional steps, you can strengthen your impact."
-    ];
-    if (score >= 4) return [
-      "Attitude: Brain Health Passive",
-      "Small changes can make a meaningful difference in how your brain functions and ages."
-    ];
-    return [
-      "Attitude: Brain Health Disengaged",
-      "Understanding how daily choices affect your brain is the first step toward lasting mental vitality."
-    ];
-  }
+function readScore(key, min, max) {
+  const raw = params.get(key);
+  if (!raw) return 0;
 
-  function getKnowledgePersona(score) {
-    if (score >= 17) return [
-      "Knowledge: Brain Health Informed",
-      "You have a solid foundation of brain health knowledge—now it’s about applying it consistently."
-    ];
-    if (score >= 13) return [
-      "Knowledge: Brain Health Literate",
-      "You’re well-informed, and a few refinements could significantly improve your results."
-    ];
-    if (score >= 9) return [
-      "Knowledge: Brain Health Developing",
-      "Learning a few core principles can dramatically improve how you support your brain."
-    ];
-    return [
-      "Knowledge: Brain Health Uninformed",
-      "Brain health is more influenced by daily habits than most people realize."
-    ];
-  }
+  // remove spaces, %20, commas, non-numeric
+  const cleaned = raw.replace(/[^\d.]/g, '');
+  const num = Number(cleaned);
 
-  function getConditionPersona(score) {
-    if (score >= 22) return [
-      "Condition: Brain Health Resilient",
-      "Your brain appears to be functioning at a high level—protecting this resilience is key."
-    ];
-    if (score >= 17) return [
-      "Condition: Brain Health Stable",
-      "Your brain health is solid, with room to improve consistency and recovery."
-    ];
-    if (score >= 12) return [
-      "Condition: Brain Health Strained",
-      "Your brain may be under strain—supportive changes could lead to noticeable improvement."
-    ];
-    return [
-      "Condition: Brain Health Compromised",
-      "Your results suggest your brain may need focused support to regain clarity and resilience."
-    ];
-  }
+  if (!Number.isFinite(num)) return 0;
+  return Math.min(Math.max(num, min), max);
+}
 
-  // -----------------------------
-  // 3. APPLY PERSONAS TO PAGE
-  // -----------------------------
-  const [attTitle, attMsg] = getAttitudePersona(attitude);
-  const [knowTitle, knowMsg] = getKnowledgePersona(knowledge);
-  const [condTitle, condMsg] = getConditionPersona(condition);
+const attitude  = readScore('att', 0, 12);
+const knowledge = readScore('know', 0, 20);
+const condition = readScore('cond', 0, 28);
 
-  document.getElementById("attitudePersona").textContent = attTitle;
-  document.getElementById("attitudeMessage").textContent = attMsg;
+/* ======================================================
+   2. NORMALIZE VALUES (RADAR CHART SAFE)
+====================================================== */
 
-  document.getElementById("knowledgePersona").textContent = knowTitle;
-  document.getElementById("knowledgeMessage").textContent = knowMsg;
+const normalized = [
+  (attitude / 12) * 100,
+  (knowledge / 20) * 100,
+  (condition / 28) * 100
+];
 
-  document.getElementById("conditionPersona").textContent = condTitle;
-  document.getElementById("conditionMessage").textContent = condMsg;
+/* ======================================================
+   3. PERSONA LOGIC
+====================================================== */
 
-  // -----------------------------
-  // 4. QUICKCHART RADAR CHART
-  // -----------------------------
-  const chartConfig = {
-    type: 'radar',
-    data: {
-      labels: ['Attitude', 'Knowledge', 'Condition'],
-      datasets: [{
-        label: 'Brain Health Profile',
-        data: [attitude, knowledge, condition],
-        backgroundColor: 'rgba(54,162,235,0.2)',
-        borderColor: 'rgba(54,162,235,1)',
-        pointBackgroundColor: 'rgba(54,162,235,1)',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      scales: {
-        r: {
-          beginAtZero: true,
-          suggestedMax: 28
+function attitudePersona(score) {
+  if (score >= 10) return [
+    "Attitude: Brain Health Champion",
+    "You already value and prioritize your brain health—now it’s about refining and sustaining your approach."
+  ];
+  if (score >= 7) return [
+    "Attitude: Brain Health Aware",
+    "You recognize the importance of brain health. With a few intentional steps, you can strengthen your impact."
+  ];
+  if (score >= 4) return [
+    "Attitude: Brain Health Passive",
+    "Small changes can make a meaningful difference in how your brain functions and ages."
+  ];
+  return [
+    "Attitude: Brain Health Disengaged",
+    "Understanding how daily choices affect your brain is the first step toward lasting mental vitality."
+  ];
+}
+
+function knowledgePersona(score) {
+  if (score >= 17) return [
+    "Knowledge: Brain Health Informed",
+    "You have a solid foundation of brain health knowledge—now it’s about applying it consistently."
+  ];
+  if (score >= 13) return [
+    "Knowledge: Brain Health Literate",
+    "You’re well-informed, and a few refinements could significantly improve your results."
+  ];
+  if (score >= 9) return [
+    "Knowledge: Brain Health Developing",
+    "Learning a few core principles can dramatically improve how you support your brain."
+  ];
+  return [
+    "Knowledge: Brain Health Uninformed",
+    "Brain health is more influenced by daily habits than most people realize."
+  ];
+}
+
+function conditionPersona(score) {
+  if (score >= 22) return [
+    "Condition: Brain Health Resilient",
+    "Your brain appears to be functioning at a high level—protecting this resilience is key."
+  ];
+  if (score >= 17) return [
+    "Condition: Brain Health Stable",
+    "Your brain health is solid, with room to improve consistency and recovery."
+  ];
+  if (score >= 12) return [
+    "Condition: Brain Health Strained",
+    "Your brain may be under strain—supportive changes could lead to noticeable improvement."
+  ];
+  return [
+    "Condition: Brain Health Compromised",
+    "Your results suggest your brain may need focused support to regain clarity and resilience."
+  ];
+}
+
+/* ======================================================
+   4. APPLY PERSONAS TO PAGE
+====================================================== */
+
+const [aTitle, aMsg] = attitudePersona(attitude);
+const [kTitle, kMsg] = knowledgePersona(knowledge);
+const [cTitle, cMsg] = conditionPersona(condition);
+
+document.getElementById('attitudePersona').textContent = aTitle;
+document.getElementById('attitudeMessage').textContent = aMsg;
+
+document.getElementById('knowledgePersona').textContent = kTitle;
+document.getElementById('knowledgeMessage').textContent = kMsg;
+
+document.getElementById('conditionPersona').textContent = cTitle;
+document.getElementById('conditionMessage').textContent = cMsg;
+
+/* ======================================================
+   5. QUICKCHART RADAR CONFIG
+====================================================== */
+
+const chartConfig = {
+  type: 'radar',
+  data: {
+    labels: ['Attitude', 'Knowledge', 'Condition'],
+    datasets: [{
+      label: 'Brain Health Profile',
+      data: normalized,
+      backgroundColor: 'rgba(54,162,235,0.25)',
+      borderColor: 'rgba(54,162,235,1)',
+      pointBackgroundColor: 'rgba(54,162,235,1)',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        ticks: {
+          stepSize: 20
         }
       }
     }
-  };
+  }
+};
 
-  const chartUrl =
-    "https://quickchart.io/chart?c=" +
-    encodeURIComponent(JSON.stringify(chartConfig));
+const chartURL =
+  "https://quickchart.io/chart?c=" +
+  encodeURIComponent(JSON.stringify(chartConfig));
 
-  document.getElementById("chart").src = chartUrl;
+document.getElementById('chart').src = chartURL;
+
 </script>
 
 </body>
